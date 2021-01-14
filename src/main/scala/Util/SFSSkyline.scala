@@ -7,18 +7,18 @@ import scala.util.control.Breaks.{break, breakable}
 
 object SFSSkyline {
 
-  def calculate(x: Array[Array[Double]]): Iterator[Array[Double]] = {
+  def calculate(partitionArray: Array[Array[Double]]): Iterator[Array[Double]] = {
     val buffer = ArrayBuffer[Array[Double]]()
-    buffer += x(0)
-    for (i <- 1 until x.length) {
+    buffer += partitionArray(0)
+    for (i <- 1 until partitionArray.length) {
       var j = 0
       var toBeAdded = true
       breakable {
         while (j < buffer.length) {
-          if (isDominated(x(i), buffer(j))) {
+          if (isDominated(partitionArray(i), buffer(j))) {
             buffer.remove(j)
             j -= 1
-          } else if (isDominated(buffer(j), x(i))) {
+          } else if (isDominated(buffer(j), partitionArray(i))) {
             toBeAdded = false
             break()
           }
@@ -26,14 +26,14 @@ object SFSSkyline {
         }
       }
       if (toBeAdded)
-        buffer += x(i)
+        buffer += partitionArray(i)
     }
     buffer.toIterator
   }
 
-  def addScoreAndCalculate(array: Iterator[Array[Double]]): Iterator[Array[Double]] = {
+  def addScoreAndCalculate(partition: Iterator[Array[Double]]): Iterator[Array[Double]] = {
     calculate(
-      array.map(x => (x, 0))
+      partition.map(x => (x, 0))
         .map(x => {
           var sum = 0.0
           for (i <- x._1.indices)

@@ -1,6 +1,6 @@
+import Util.Domination.calculateDomination
 import org.apache.log4j._
 import org.apache.spark.{SparkConf, SparkContext}
-import Util.SFSSkyline.addScoreAndCalculate
 
 object HighestDominance {
 
@@ -22,9 +22,13 @@ object HighestDominance {
       .map(x => x.split(","))
       .map(x => x.map(y => y.toDouble))
 
-    // TODO
-    val result = points
-    result.saveAsTextFile(outputDir)
+    val k = 20
+    val result = points.mapPartitions(calculateDomination)
+      .sortBy(_._2, ascending = false)
+      .zipWithIndex
+      .filter(_._2 < k)
+
+    result.map(_._1._1.mkString(", ")).saveAsTextFile(outputDir)
 
     sc.stop()
   }
