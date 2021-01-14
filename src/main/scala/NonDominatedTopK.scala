@@ -1,5 +1,6 @@
 import org.apache.log4j._
 import org.apache.spark.{SparkConf, SparkContext}
+import Util.SFSSkyline.addScoreAndCalculate
 
 object NonDominatedTopK {
 
@@ -16,8 +17,6 @@ object NonDominatedTopK {
     val currentDir = System.getProperty("user.dir")
     val inputFile = "file://" + currentDir + "/datasets/gaussian_size1000_dim5.csv"
     val outputDir = "file://" + currentDir + "/output"
-
-    val skylineHelper = new SkylineHelper()
 
     val points = sc.textFile(inputFile)
       .map(x => x.split(","))

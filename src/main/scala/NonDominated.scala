@@ -1,5 +1,6 @@
-import org.apache.spark.{SparkConf, SparkContext}
+import Util.SFSSkyline.addScoreAndCalculate
 import org.apache.log4j._
+import org.apache.spark.{SparkConf, SparkContext}
 
 object NonDominated {
 
@@ -17,17 +18,15 @@ object NonDominated {
     val inputFile = "file://" + currentDir + "/datasets/gaussian_size1000_dim5.csv"
     val outputDir = "file://" + currentDir + "/output"
 
-    val skylineHelper = new SkylineHelper()
-
     val points = sc.textFile(inputFile)
       .map(x => x.split(","))
       .map(x => x.map(y => y.toDouble))
 
-    val result = sc.makeRDD(
-      skylineHelper.skyline(points.toLocalIterator)
-    ).map(x => x.mkString(", "))
-    result.saveAsTextFile(outputDir)
+    val result = points.mapPartitions(addScoreAndCalculate) // calculate the skyline for each partition
+      .coalesce(1) // reduce to 1 partition
+      .mapPartitions(addScoreAndCalculate) // and calculate the skyline again for all points
 
+    result.map(x => x.mkString(", ")).saveAsTextFile(outputDir)
     sc.stop()
   }
 }

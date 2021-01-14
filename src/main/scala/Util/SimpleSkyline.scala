@@ -1,17 +1,10 @@
-class SkylineHelper extends Serializable {
+package Util
 
-  def isDominated(left: Array[Double], right: Array[Double]): Boolean = {
-    var same = true
-    for (i <- left.indices) {
-      if (left(i) < right(i))
-        return false
-      else if (same && left(i) > right(i))
-        same = false
-    }
-    !same
-  }
+import Util.Domination.isDominated
 
-  def skyline(x: Iterator[Array[Double]]): List[Array[Double]] = {
+object SimpleSkyline {
+
+  def calculate(x: Iterator[Array[Double]]): Iterator[Array[Double]] = {
     var tempList = x.toList
     var i = 0
     var listLength = tempList.length
@@ -32,7 +25,7 @@ class SkylineHelper extends Serializable {
       }
       i += 1
     }
-    tempList
+    tempList.toIterator
   }
 
 }
