@@ -6,11 +6,12 @@ import scala.util.control.Breaks.{break, breakable}
 object Domination {
 
   def isDominated(left: Array[Double], right: Array[Double]): Boolean = {
+    // left dominates right
     var same = true
     for (i <- left.indices) {
-      if (left(i) < right(i))
+      if (left(i) > right(i))
         return false
-      else if (same && left(i) > right(i))
+      else if (same && left(i) < right(i))
         same = false
     }
     !same

@@ -15,7 +15,7 @@ object NonDominatedTopK {
     val sc = new SparkContext(sparkConf)
 
     val currentDir = System.getProperty("user.dir")
-    val inputFile = "file://" + currentDir + "/datasets/gaussian_size1000_dim5.csv"
+    val inputFile = "file://" + currentDir + "/datasets/gaussian_size1000_dim2.csv"
     val outputDir = "file://" + currentDir + "/output"
 
     val points = sc.textFile(inputFile)
