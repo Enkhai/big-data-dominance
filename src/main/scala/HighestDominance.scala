@@ -1,4 +1,5 @@
 import Util.Domination.calculateDomination
+import Util.Misc.{filterDominationPartition, sortDominationPartition}
 import org.apache.log4j._
 import org.apache.spark.{SparkConf, SparkContext}
 
@@ -22,13 +23,15 @@ object HighestDominance {
       .map(x => x.split(","))
       .map(x => x.map(y => y.toDouble))
 
-    val k = 20
     val result = points.mapPartitions(calculateDomination)
-      .sortBy(_._2, ascending = false)
-      .zipWithIndex
-      .filter(_._2 < k)
+      .mapPartitions(sortDominationPartition)
+      .mapPartitions(partition => filterDominationPartition(partition))
+      .coalesce(1)
+      .mapPartitions(calculateDomination)
+      .mapPartitions(sortDominationPartition)
+      .mapPartitions(partition => filterDominationPartition(partition))
 
-    result.map(_._1._1.mkString(", ")).saveAsTextFile(outputDir)
+    result.map(_.mkString(", ")).saveAsTextFile(outputDir)
 
     sc.stop()
   }
