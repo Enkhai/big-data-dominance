@@ -4,11 +4,8 @@ import scala.collection.mutable.ArrayBuffer
 
 object Misc {
 
-  def sortDominationPartition(partition: Iterator[(Array[Double], Int)]): Iterator[(Array[Double], Int)] = {
-    partition.toList.sortBy(_._2).reverse.toIterator
-  }
-
   def filterDominationPartition(partition: Iterator[(Array[Double], Int)], k: Int = 20): Iterator[Array[Double]] = {
+    // Works only with sorted domination score partitions
     partition.toList.zipWithIndex.filter(_._2 < k).map(_._1._1).toIterator
   }
 
@@ -24,6 +21,21 @@ object Misc {
     if (partition.isEmpty)
       return Iterator(Array.fill(dim)(Double.PositiveInfinity))
     partition
+  }
+
+  def applyMinValue(partition: Iterator[Array[Double]], minVal: Array[Double], subtract: Boolean = true):
+  Iterator[Array[Double]] = {
+    val newPartition = ArrayBuffer[Array[Double]]()
+    while (partition.hasNext) {
+      val x = partition.next
+      for (i <- x.indices)
+        if (subtract)
+          x(i) -= minVal(i)
+        else
+          x(i) += minVal(i)
+      newPartition += x
+    }
+    newPartition.toIterator
   }
 
 }

@@ -5,15 +5,15 @@ import org.apache.spark.Partitioner
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.util.control.Breaks.{break, breakable}
 
-class AngularPartitioner(numberOfPartitions: Int, minVal: Array[Double]) extends Partitioner {
+class AngularPartitioner(numberOfPartitions: Int, dimension: Int) extends Partitioner {
 
   override def numPartitions: Int = numberOfPartitions
 
   if (numberOfPartitions < 1)
     throw new Exception("Number of partitions cannot be smaller than 1.")
-  if (minVal.length < 2)
+  if (dimension < 2)
     throw new Exception("Cannot partition one-dimensional RDD.")
-  if (numberOfPartitions > Math.pow(3, minVal.length - 1) || numberOfPartitions % 3 != 0)
+  if (numberOfPartitions > Math.pow(3, dimension - 1) || numberOfPartitions % 3 != 0)
     throw new Exception("Cannot split dimension into more than 3 parts.")
 
   val partitionRange: List[List[Double]] = makePartitionRange()
@@ -21,7 +21,7 @@ class AngularPartitioner(numberOfPartitions: Int, minVal: Array[Double]) extends
   def makePartitionRange(): List[List[Double]] = {
     var partitionRange = ListBuffer[List[Double]]()
     var n = numPartitions
-    for (_ <- 0 until minVal.length - 1) {
+    for (_ <- 0 until dimension - 1) {
       var range = List[Double]()
       if (n == 1)
         range = List(0, 90)
@@ -38,7 +38,7 @@ class AngularPartitioner(numberOfPartitions: Int, minVal: Array[Double]) extends
   }
 
   def makeKey(point: Array[Double]): Int = {
-    if (point.length != minVal.length)
+    if (point.length != dimension)
       throw new Exception("Invalid key.")
     if (numPartitions == 1)
       return 0
@@ -46,10 +46,10 @@ class AngularPartitioner(numberOfPartitions: Int, minVal: Array[Double]) extends
     var angularCoord = ArrayBuffer[Double]()
     for (i <- 0 until point.length - 1) {
       // add one to avoid division by zero error
-      val toDivideBy = point(i) - minVal(i) + 1
+      val toDivideBy = point(i) + 1
       var squaredSum = 0.0
       for (j <- i + 1 until point.length)
-        squaredSum += Math.pow(point(j) - minVal(j), 2)
+        squaredSum += Math.pow(point(j), 2)
       val coord = Math.toDegrees(Math.atan(Math.sqrt(squaredSum) / toDivideBy))
       angularCoord += coord
     }

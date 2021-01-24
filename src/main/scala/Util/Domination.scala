@@ -1,8 +1,5 @@
 package Util
 
-import scala.collection.mutable.ArrayBuffer
-import scala.util.control.Breaks.{break, breakable}
-
 object Domination {
 
   def isDominated(left: Array[Double], right: Array[Double]): Boolean = {
@@ -18,21 +15,16 @@ object Domination {
   }
 
   def calculateDomination(partition: Iterator[Array[Double]]): Iterator[(Array[Double], Int)] = {
-    var buffer = ArrayBuffer[(Array[Double], Int)]()
-    val partitionList = partition.toList
-    for (i <- partitionList.indices) {
-      var domScore = 0
-      for (j <- partitionList.indices) {
-        breakable {
-          if (i == j)
-            break()
-          if (isDominated(partitionList(i), partitionList(j)))
-            domScore += 1
-        }
+    val buffer = partition.toBuffer[Array[Double]].map(x => (x, 0))
+    for (i <- 0 until buffer.length - 1) {
+      for (j <- i + 1 until buffer.length) {
+        if (isDominated(buffer(i)._1, buffer(j)._1))
+          buffer(i) = (buffer(i)._1, buffer(i)._2 + 1)
+        else if (isDominated(buffer(j)._1, buffer(i)._1))
+          buffer(j) = (buffer(j)._1, buffer(j)._2 + 1)
       }
-      buffer += Tuple2(partitionList(i), domScore)
     }
-    buffer.toIterator
+    buffer.sortBy(-_._2).toIterator
   }
 
 }
