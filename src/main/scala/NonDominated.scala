@@ -17,7 +17,7 @@ object NonDominated {
     val sc = new SparkContext(sparkConf)
 
     val currentDir = System.getProperty("user.dir")
-    val inputFile = "file://" + currentDir + "/datasets/uniform_size1000000_dim3.csv"
+    val inputFile = "file://" + currentDir + "/datasets/uniform_size100000_dim3.csv"
     val outputDir = "file://" + currentDir + "/output"
 
     var points = sc.textFile(inputFile)
@@ -49,7 +49,7 @@ object NonDominated {
     result.map(x => x.mkString(", ")).saveAsTextFile(outputDir)
 
     print("######### Time taken for skyline calculation #########\n")
-    print((System.nanoTime - timeBefore) / 1e6d)
+    print((System.nanoTime - timeBefore) / 1e9d)
 
     sc.stop()
   }

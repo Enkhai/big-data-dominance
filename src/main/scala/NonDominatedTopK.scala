@@ -18,7 +18,7 @@ object NonDominatedTopK {
     val sc = new SparkContext(sparkConf)
 
     val currentDir = System.getProperty("user.dir")
-    val inputFile = "file://" + currentDir + "/datasets/uniform_size10000_dim3.csv"
+    val inputFile = "file://" + currentDir + "/datasets/uniform_size100000_dim3.csv"
     val outputDir = "file://" + currentDir + "/output"
 
     var points = sc.textFile(inputFile)
@@ -54,7 +54,7 @@ object NonDominatedTopK {
     result.map(_.mkString(", ")).saveAsTextFile(outputDir)
 
     print("######### Time taken for top 20 skyline calculation #########\n")
-    print((System.nanoTime - timeBefore) / 1e6d)
+    print((System.nanoTime - timeBefore) / 1e9d)
 
     sc.stop()
   }
