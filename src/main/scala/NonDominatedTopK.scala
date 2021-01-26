@@ -12,25 +12,27 @@ object NonDominatedTopK {
     Logger.getLogger("org.apache.spark.SparkContext").setLevel(Level.WARN)
 
     val sparkConf = new SparkConf()
-      .setMaster("local[4]")
+      .setMaster("local[*]")
       .setAppName("NonDominatedTopK")
 
     val sc = new SparkContext(sparkConf)
 
     val currentDir = System.getProperty("user.dir")
-    val inputFile = "file://" + currentDir + "/datasets/gaussian_size1000_dim5.csv"
+    val inputFile = "file://" + currentDir + "/datasets/uniform_size1000000_dim3.csv"
     val outputDir = "file://" + currentDir + "/output"
 
     var points = sc.textFile(inputFile)
       .map(x => x.split(","))
       .map(x => x.map(y => y.toDouble))
 
+    val timeBefore = System.nanoTime
+
     val minVal = points.mapPartitions(getMinValues)
       .coalesce(1)
       .mapPartitions(getMinValues)
       .collect
       .head
-    val numPartitions = 3
+    val numPartitions = 9
     val partitioner = new AngularPartitioner(numPartitions, minVal.length)
 
     points = points
@@ -43,13 +45,16 @@ object NonDominatedTopK {
     val result = points.mapPartitions(calculateDomination)
       .mapPartitions(addScoreAndCalculateWithDomination)
       .mapPartitions(partition => filterDominationPartition(partition))
-      .coalesce(1)
+      .repartition(1)
       .mapPartitions(calculateDomination)
       .mapPartitions(addScoreAndCalculateWithDomination)
       .mapPartitions(partition => filterDominationPartition(partition))
       .mapPartitions(partition => applyMinValue(partition, minVal, subtract = false))
 
     result.map(_.mkString(", ")).saveAsTextFile(outputDir)
+
+    print("######### Time taken for top 20 skyline calculation #########")
+    print(System.nanoTime - timeBefore / 1e9d)
 
     sc.stop()
   }
