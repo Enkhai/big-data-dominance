@@ -18,22 +18,22 @@ object NonDominatedTopK {
     val sc = new SparkContext(sparkConf)
 
     val currentDir = System.getProperty("user.dir")
-    val inputFile = "file://" + currentDir + "/datasets/uniform_size1000000_dim3.csv"
+    val inputFile = "file://" + currentDir + "/datasets/uniform_size10000_dim3.csv"
     val outputDir = "file://" + currentDir + "/output"
 
     var points = sc.textFile(inputFile)
       .map(x => x.split(","))
       .map(x => x.map(y => y.toDouble))
 
-    val timeBefore = System.nanoTime
-
     val minVal = points.mapPartitions(getMinValues)
-      .coalesce(1)
+      .repartition(1)
       .mapPartitions(getMinValues)
       .collect
       .head
     val numPartitions = 9
     val partitioner = new AngularPartitioner(numPartitions, minVal.length)
+
+    val timeBefore = System.nanoTime
 
     points = points
       .mapPartitions(partition => applyMinValue(partition, minVal))
@@ -53,8 +53,8 @@ object NonDominatedTopK {
 
     result.map(_.mkString(", ")).saveAsTextFile(outputDir)
 
-    print("######### Time taken for top 20 skyline calculation #########")
-    print(System.nanoTime - timeBefore / 1e9d)
+    print("######### Time taken for top 20 skyline calculation #########\n")
+    print((System.nanoTime - timeBefore) / 1e6d)
 
     sc.stop()
   }

@@ -24,15 +24,15 @@ object NonDominated {
       .map(x => x.split(","))
       .map(x => x.map(y => y.toDouble))
 
-    val timeBefore = System.nanoTime
-
     val minVal = points.mapPartitions(getMinValues)
-      .coalesce(1)
+      .repartition(1)
       .mapPartitions(getMinValues)
       .collect
       .head
     val numPartitions = 9
     val partitioner = new AngularPartitioner(numPartitions, minVal.length)
+
+    val timeBefore = System.nanoTime
 
     points = points
       .mapPartitions(partition => applyMinValue(partition, minVal))
@@ -48,8 +48,8 @@ object NonDominated {
 
     result.map(x => x.mkString(", ")).saveAsTextFile(outputDir)
 
-    print("######### Time taken for skyline calculation #########")
-    print(System.nanoTime - timeBefore / 1e9d)
+    print("######### Time taken for skyline calculation #########\n")
+    print((System.nanoTime - timeBefore) / 1e6d)
 
     sc.stop()
   }
