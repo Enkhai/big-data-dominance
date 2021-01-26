@@ -42,7 +42,7 @@ object NonDominated {
       .mapPartitions(partition => fillEmpty(partition, minVal.length))
 
     val result = points.mapPartitions(addScoreAndCalculate)
-      .coalesce(1)
+      .repartition(1)
       .mapPartitions(addScoreAndCalculate)
       .mapPartitions(partition => applyMinValue(partition, minVal, subtract = false))
 
